@@ -6,6 +6,7 @@ use App\Models\Ticket;
 use App\Http\Requests\StoreTicketRequest;
 use App\Http\Requests\UpdateTicketRequest;
 use App\Http\Resources\TicketResource;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 class TicketController extends Controller
@@ -17,9 +18,13 @@ class TicketController extends Controller
      */
     public function index()
     {
-        $tickets = Ticket::all();
+        $tickets = Auth::user()->ticket;
 
-        return response()->json($tickets);
+        // $tickets = Ticket::all();
+
+        // return response()->json($tickets);
+
+        return TicketResource::collection($tickets);
     }
 
     /**
@@ -53,13 +58,15 @@ class TicketController extends Controller
      */
     public function show(Ticket $ticket)
     {
-        // $targetTicket = Ticket::findOrFail($ticket);
-        $targetTicket = Auth::user()
-            ->ticket()
-            ->findOrFail($ticket->id)
-            ->first();
+        if($ticket->user_id == Auth::id()){
 
-        return new TicketResource($targetTicket);
+            $targetTicket = Auth::user()
+                ->ticket()
+                ->findOrFail($ticket->id)
+                ->first();
+    
+            return new TicketResource($targetTicket);
+        }
     }
 
     /**
@@ -85,17 +92,24 @@ class TicketController extends Controller
         // $targetTicket = Ticket::findOrFail($ticket);
         
         // $targetTicket->update($request->all());
-    
         // return tap($targetTicket)->update($request->all());
         
         if($ticket->user_id == Auth::id()){
             
-            $this->authorize('update', $ticket);
+            if(Auth::user()->role->role == 'Support'){
+                $ticket->update($request->only([
+                    'description',
+                    'priority_id',
+                ]));
+                return new TicketResource($ticket);
 
-            // $ticket->update($request->except([
-            //     'title',
-            //     'category_id'
-            // ]));
+            } elseif (Auth::user()->role->role == 'Developer'){
+                $ticket->update($request->only([
+                    'status_id',
+                ]));
+                return new TicketResource($ticket);
+
+            } abort(403);
         }
 
         return new TicketResource($ticket);
@@ -109,17 +123,12 @@ class TicketController extends Controller
      */
     public function destroy(Ticket $ticket)
     {
-        // Ticket::findOrFail($ticket)->delete();
-
-        // return response(null, 204);
-
         if($ticket->user_id == Auth::id()){
-
+            
+            // Ticket::findOrFail($ticket)->delete();
             $ticket->delete();
 
             return response()->json(null, 204);
-        }
-
-        abort(403);
+        } abort(403);
     }
 }
