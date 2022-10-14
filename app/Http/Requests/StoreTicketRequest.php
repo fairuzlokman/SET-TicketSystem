@@ -26,9 +26,10 @@ class StoreTicketRequest extends FormRequest
         return [
             'category_id' => 'required|exists:categories,id',
             'priority_id' => 'required|exists:priorities,id',
-            'status_id' => 'required|exists:statuses,id',
+            'status_id' => 'exists:statuses,id',
             'title' => 'required|string',
-            'description' => 'required|string'
+            'description' => 'required|string',
+            'assign_user_id' => 'exists:users,id'
         ];
     }
 }

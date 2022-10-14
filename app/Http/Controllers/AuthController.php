@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -29,7 +30,8 @@ class AuthController extends Controller
             return \response()->json([
                 'message' => 'Successfully logged in',
                 'data' => [
-                    'token' => $token
+                    'token' => $token,
+                    'user' => new UserResource($user)
                 ]
             ]);
 

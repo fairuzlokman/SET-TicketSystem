@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\LookupController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
@@ -28,3 +29,5 @@ Route::post('user-login', [AuthController::class, 'login']);
 Route::post('user-logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 Route::apiResource('ticket', TicketController::class)->middleware('auth:sanctum');
+
+Route::get('lookup', LookupController::class);

@@ -7,6 +7,7 @@ use App\Http\Requests\StoreTicketRequest;
 use App\Http\Requests\UpdateTicketRequest;
 use App\Http\Resources\TicketResource;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class TicketController extends Controller
@@ -20,11 +21,18 @@ class TicketController extends Controller
     {
         $tickets = Auth::user()->ticket;
 
-        // $tickets = Ticket::all();
+        if(Auth::user()->role->role == 'Support')
+        {
+            return TicketResource::collection($tickets);
 
-        // return response()->json($tickets);
+        }
+        // elseif (Auth::user()->role->role == 'Developer')
+        // {
+        //     if($tickets->user_id == Auth::id()){
 
-        return TicketResource::collection($tickets);
+        //         return TicketResource::collection($tickets);
+        //     }
+        // }
     }
 
     /**
@@ -45,9 +53,12 @@ class TicketController extends Controller
      */
     public function store(StoreTicketRequest $request)
     {
-        $ticket=Auth::user()->ticket()->create($request->all());
-
-        return new TicketResource($ticket);
+        if(Auth::user()->role->role == 'Support')
+        {
+            $ticket=Auth::user()->ticket()->create($request->all());
+            
+            return new TicketResource($ticket);
+        } abort(403);
     }
 
     /**
@@ -87,32 +98,19 @@ class TicketController extends Controller
      * @param  \App\Models\Ticket  $ticket
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateTicketRequest $request, Ticket $ticket)
+    public function update(UpdateTicketRequest $request, $ticket)
     {
-        // $targetTicket = Ticket::findOrFail($ticket);
-        
-        // $targetTicket->update($request->all());
-        // return tap($targetTicket)->update($request->all());
-        
-        if($ticket->user_id == Auth::id()){
-            
-            if(Auth::user()->role->role == 'Support'){
-                $ticket->update($request->only([
-                    'description',
-                    'priority_id',
-                ]));
-                return new TicketResource($ticket);
+        $targetTicket = Ticket::findOrFail($ticket);
+        if(Auth::user()->role->role == "Support"){
+            $targetTicket->update($request->all());
+            return new TicketResource($targetTicket);
 
-            } elseif (Auth::user()->role->role == 'Developer'){
-                $ticket->update($request->only([
-                    'status_id',
-                ]));
-                return new TicketResource($ticket);
-
-            } abort(403);
-        }
-
-        return new TicketResource($ticket);
+        } elseif (Auth::user()->role->role == "Developer"){
+            $targetTicket->update($request->only([
+                "status_id"
+            ]));
+            return new TicketResource($targetTicket);
+        } abort(403);
     }
 
     /**
@@ -123,12 +121,12 @@ class TicketController extends Controller
      */
     public function destroy(Ticket $ticket)
     {
-        if($ticket->user_id == Auth::id()){
-            
-            // Ticket::findOrFail($ticket)->delete();
+        if(Auth::user()->role->role == 'Support')    
+        {
             $ticket->delete();
 
             return response()->json(null, 204);
+
         } abort(403);
     }
 }

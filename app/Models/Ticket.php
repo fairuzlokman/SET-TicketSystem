@@ -14,7 +14,8 @@ class Ticket extends Model
         'priority_id',
         'status_id',
         'title',
-        'description'
+        'description',
+        'assign_user_id'
     ];
 
     protected $hidden = [

@@ -6,6 +6,7 @@ use App\Http\Requests\UserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -16,9 +17,14 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::all();
+        if(Auth::user()->role->role == 'Support')
+        {
+            $users = User::all();
 
-        return response()->json($users);
+            // return response()->json($users);
+            return UserResource::collection($users);
+        
+        } abort(403);
     }
 
     /**
@@ -44,13 +50,11 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        $user = User::findOrFail($id);
-
-        $this->authorize('view', $user);
-
-        // \dd(Auth::user()->role);
-
-        return $user;
+        if(Auth::user()){
+            $user = User::findOrFail($id);
+    
+            return $user;
+        }
     }
 
     /**
@@ -77,8 +81,11 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        User::findOrFail($id)->delete();
+        if(Auth::user()->role->role == 'Support')
+        {
+            User::findOrFail($id)->delete();
 
-        return response(null, 204);
+            return response(null, 204);
+        } abort(403);
     }
 }

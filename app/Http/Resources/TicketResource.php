@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\User;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class TicketResource extends JsonResource
@@ -17,9 +18,10 @@ class TicketResource extends JsonResource
         return [
             'category' => $this->category->category,
             'priority' => $this->priority->priority_level,
-            'status' => $this->status->status,
+            'status' => optional($this->status)->status,
             'title'=> $this->title,
-            'description' => $this->description
+            'description' => $this->description,
+            'assign_to' => User::where('id',$this->assign_user_id)->value('name'),
         ];
     }
 }
