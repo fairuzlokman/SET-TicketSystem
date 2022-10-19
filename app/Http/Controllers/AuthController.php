@@ -28,24 +28,26 @@ class AuthController extends Controller
 
             // Return token to user
             return \response()->json([
-                'message' => 'Successfully logged in',
+                'message' => 'You have successfully logged in.',
                 'data' => [
                     'token' => $token,
                     'user' => new UserResource($user)
                 ]
             ]);
 
-        } \abort(404, 'User not registered');
+        } else {
+            return \response()->json([
+                'message' => 'Incorrect password/email.'
+            ], 404);
+        }
+        // \abort(404, 'Incorrect password/email.');
 
-        return \response()->json([
-            'message' => 'User not registered'
-        ], 404);
     }
 
     public function logout() {
         // Delete tokens from DB
         Auth::user()->tokens->first()->delete();
 
-        return 'Successfully logged out';
+        return 'You have successfully logged out';
     }
 }

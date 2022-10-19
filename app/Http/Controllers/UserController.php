@@ -17,13 +17,25 @@ class UserController extends Controller
      */
     public function index()
     {
-        if(Auth::user()->role->role == 'Support')
+        if(Auth::user()->role->role == 'Admin')
         {
-            $users = User::all();
+            $allUsers = User::all();
+            $allUsersDetails = UserResource::collection($allUsers);
 
-            // return response()->json($users);
-            return UserResource::collection($users);
-        
+            // $test = User::where("role_id", "=", 2);
+            // dd($test);
+
+            $users = User::where("role_id", "=", 2)->get();
+            $usersDetails = UserResource::collection($users);
+            
+            $data = [
+                "allUsers" => $allUsersDetails,
+                "users" => $usersDetails
+            ];
+            // return UserResource::collection($users);
+            
+            return $data;
+
         } abort(403);
     }
 
@@ -81,7 +93,7 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        if(Auth::user()->role->role == 'Support')
+        if(Auth::user()->role->role == 'Admin')
         {
             User::findOrFail($id)->delete();
 

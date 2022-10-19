@@ -19,20 +19,18 @@ class TicketController extends Controller
      */
     public function index()
     {
-        $tickets = Auth::user()->ticket;
-
-        if(Auth::user()->role->role == 'Support')
+        if(Auth::user()->role->role == 'Admin')
         {
+            $tickets = Ticket::all();
+            
             return TicketResource::collection($tickets);
-
         }
-        // elseif (Auth::user()->role->role == 'Developer')
-        // {
-        //     if($tickets->user_id == Auth::id()){
+        elseif (Auth::user()->role->role == 'User')
+        {
+            $tickets = Ticket::where('assign_user_id', Auth::user()->id)->get();
 
-        //         return TicketResource::collection($tickets);
-        //     }
-        // }
+            return TicketResource::collection($tickets);
+        }
     }
 
     /**
@@ -53,7 +51,7 @@ class TicketController extends Controller
      */
     public function store(StoreTicketRequest $request)
     {
-        if(Auth::user()->role->role == 'Support')
+        if(Auth::user()->role->role == 'Admin')
         {
             $ticket=Auth::user()->ticket()->create($request->all());
             
@@ -101,11 +99,11 @@ class TicketController extends Controller
     public function update(UpdateTicketRequest $request, $ticket)
     {
         $targetTicket = Ticket::findOrFail($ticket);
-        if(Auth::user()->role->role == "Support"){
+        if(Auth::user()->role->role == "Admin"){
             $targetTicket->update($request->all());
             return new TicketResource($targetTicket);
 
-        } elseif (Auth::user()->role->role == "Developer"){
+        } elseif (Auth::user()->role->role == "User"){
             $targetTicket->update($request->only([
                 "status_id"
             ]));
@@ -121,7 +119,7 @@ class TicketController extends Controller
      */
     public function destroy(Ticket $ticket)
     {
-        if(Auth::user()->role->role == 'Support')    
+        if(Auth::user()->role->role == 'Admin')    
         {
             $ticket->delete();
 
